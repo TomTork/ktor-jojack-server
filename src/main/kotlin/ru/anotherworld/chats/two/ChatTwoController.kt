@@ -25,10 +25,10 @@ import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.collections.LinkedHashSet
 
-
 //Example: chat1x2; chat123x666
 @OptIn(DelicateCoroutinesApi::class)
 fun Application.configureChatTwoController() {
+    val database = MainDatabase2()
     routing {
         var messengerController: MessengerController3? = null
         val connections = Collections.synchronizedSet<Connection?>(LinkedHashSet())
@@ -46,10 +46,11 @@ fun Application.configureChatTwoController() {
 
                         val receivedText = frame.readBytes().decodeToString()
                         val data = Json.decodeFromString<TMessage>(receivedText)
-                        println(data)
+
                         var ready = true
                         connections.forEach {
-                            if (nameDB == it.nameDB){
+                            if (nameDB == it.nameDB
+                                && (!database.getPrivacy(data.author) || database.getJob(data.author) > 1)){
                                 val time = System.currentTimeMillis()
                                 val message = data.message
                                 it.session.send(
@@ -70,13 +71,20 @@ fun Application.configureChatTwoController() {
                                     }).start()
                                 }
                             }
+                            else if(database.getPrivacy(data.author)) it.session.send(Json.encodeToString<TMessage>(
+                                TMessage(
+                                    id = -1,
+                                    author = "NULL",
+                                    message = "NULL",
+                                    timestamp = System.currentTimeMillis()
+                                )
+                            ))
                         }
                     }
                 } catch (e: Exception){
                     println(e)
                     println(e.localizedMessage)
                 } finally {
-                    println("Removing $thisConnection!")
                     connections -= thisConnection
                 }
             }
@@ -86,7 +94,6 @@ fun Application.configureChatTwoController() {
             val controller = MessengerController3(nameDB)
             call.respond<GetLengthMessages>(HttpStatusCode.OK,
                 GetLengthMessages(controller.getLengthMessages()))
-            println("DATA -> ${controller.getLengthMessages()}")
         }
         post("getchat2"){ //Получить сообщения по индексам
             val nameDB = call.parameters["namedb"] ?: ""
@@ -94,7 +101,6 @@ fun Application.configureChatTwoController() {
             val db = call.receive<Indexes>()
             try {
                 call.respond(HttpStatusCode.OK, controller.getRangeMessage(db.startIndex, db.endIndex))
-                println("DATA -> ${controller.getRangeMessage(db.startIndex, db.endIndex)}")
             } catch (e: Exception){
                 println(e.message)
                 call.respond(HttpStatusCode.Conflict)

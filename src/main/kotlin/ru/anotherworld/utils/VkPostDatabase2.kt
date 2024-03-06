@@ -20,7 +20,7 @@ object VkPostTable : Table("vkposts"){
 
     val iconUrl = varchar("iconUrl", 512)
     val nameGroup = varchar("nameGroup", 70)
-    val textPost = varchar("textPost", 4096)
+    val textPost = varchar("textPost", 16384)
     val imagesUrls = varchar("imagesUrls", 8192)
     val like = integer("l1ke")
     val commentsUrl = varchar("commentsUrl", 128)

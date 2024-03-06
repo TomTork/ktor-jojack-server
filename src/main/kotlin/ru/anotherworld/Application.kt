@@ -12,6 +12,7 @@ import ru.anotherworld.features.login.configureLoginRouting
 import ru.anotherworld.features.posts.configureLikeListener
 import ru.anotherworld.features.register.configureRegisterRouting
 import ru.anotherworld.features.search.configureSearchRouting
+import ru.anotherworld.features.terminal.configureTerminalRouting
 import ru.anotherworld.features.update.configureUpdateRouting
 import ru.anotherworld.features.upload.icons.configureIconRouting
 import ru.anotherworld.features.upload.images.configureImageRouting
@@ -47,5 +48,6 @@ fun Application.module() {
     configureUpdateRouting()
     configureImageRouting()
     configureIconRouting()
+    configureTerminalRouting()
     configureVkLaunchListener()
 }
