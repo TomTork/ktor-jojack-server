@@ -6,6 +6,7 @@ import io.ktor.server.config.*
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
+import ru.anotherworld.globalPath
 import ru.anotherworld.utils.DatabaseSingletonVkPostDatabase
 import java.io.File
 import kotlin.concurrent.thread
@@ -55,7 +56,7 @@ class MessengerController3(nameDB: String){
         fun init(){
             database = Database.connect(
                 createHikariDataSource(
-                    url = "jdbc:h2:C:/Users/Rescue/Documents/ktor-jojack-server/src/main/kotlin/ru/anotherworld/files/sqldatabase/messenger/$name;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false",
+                    url = "jdbc:h2:$globalPath/sqldatabase/messenger/$name;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false",
                     driver = "org.h2.Driver"
                     )
                 )

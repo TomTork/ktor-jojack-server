@@ -7,6 +7,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import ru.anotherworld.features.login.cipher
+import ru.anotherworld.path
 import ru.anotherworld.utils.MainDatabase2
 import ru.anotherworld.utils.TokenDatabase2
 import java.io.File
@@ -14,9 +15,9 @@ import java.io.File
 class TerminalController {
     private val tokenDatabase = TokenDatabase2()
     private val mainDatabase = MainDatabase2()
-    private val key1 = File("C:/Users/Rescue/Documents/ktor-jojack-server/src/main/kotlin/ru/anotherworld/keys",
+    private val key1 = File("$path/keys",
         "first_key.txt").readText()
-    private val key2 = File("C:/Users/Rescue/Documents/ktor-jojack-server/src/main/kotlin/ru/anotherworld/keys",
+    private val key2 = File("$path/keys",
         "second_key.txt").readText()
     suspend fun processingCommand(call: ApplicationCall){
         val receive = call.receive<CommandLine>()

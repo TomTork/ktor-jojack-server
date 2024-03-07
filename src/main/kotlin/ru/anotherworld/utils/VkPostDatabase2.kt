@@ -12,6 +12,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import ru.anotherworld.features.vk.GetRPost
 import ru.anotherworld.features.vk.Post
 import ru.anotherworld.features.vk.VkImageAndVideo
+import ru.anotherworld.globalPath
 import java.io.File
 import kotlin.concurrent.thread
 
@@ -48,10 +49,8 @@ object DatabaseSingletonVkPostDatabase{
         transactionIsolation = "TRANSACTION_REPEATABLE_READ"
         validate()
     })
-//    private val database = Database.connect("jdbc:h2:C:/Users/Rescue/Documents/ktor-jojack-server/src/main/kotlin/ru/anotherworld/files/sqldatabase/database;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false",
-//        driver = "org.h2.Driver")
     fun init(){
-        database = Database.connect(createHikariDataSource(url = "jdbc:h2:C:/Users/Rescue/Documents/ktor-jojack-server/src/main/kotlin/ru/anotherworld/files/sqldatabase/database;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false",
+        database = Database.connect(createHikariDataSource(url = "jdbc:h2:$globalPath/sqldatabase/database;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false",
             driver = "org.h2.Driver"))
         transaction(database) {
             SchemaUtils.createMissingTablesAndColumns(tables = arrayOf(VkPostTable, TokenTable, LikeTable, Articles))
@@ -217,114 +216,6 @@ class VkPostDatabase2{
     }
 }
 
-//class VkPostDatabase2 {
-//    private val likesDatabase = LikesDatabase2()
-//    private val database = Database.connect("jdbc:h2:C:/Users/Rescue/Documents/ktor-jojack-server/src/main/kotlin/ru/anotherworld/files/sqldatabase/VkDatabase/VkPostDatabase2",
-//        "org.h2.Driver")
-//    object VkPostTable : Table(){
-//        val id = integer("id").autoIncrement()
-//
-//        val iconUrl = varchar("iconUrl", 256)
-//        val nameGroup = varchar("nameGroup", 70)
-//        val textPost = varchar("textPost", 4096)
-//        val imagesUrls = varchar("imagesUrls", 8192)
-//        val like = integer("l1ke")
-//        val commentsUrl = varchar("commentsUrl", 128)
-//        val originalUrl = varchar("originalUrl", 128)
-//        val dateTime = varchar("dateTime", 19)
-//        val exclusive = integer("exclusive")
-//        val reposted = integer("reposted")
-//        val origName = varchar("origName", 70)
-//        val origPost = varchar("origPost", 60)
-//
-//        override val primaryKey = PrimaryKey(id, name = "id")
-//    }
-//    init {
-//        if(!File("C:/Users/Rescue/Documents/ktor-jojack-server/src/main/kotlin/ru/anotherworld/files/sqldatabase/VkDatabase/VkPostDatabase2.mv.db").exists()){
-//            transaction(database) {
-//                SchemaUtils.create(VkPostTable)
-//            }
-//        }
-//    }
-//    fun getMaxId(): Int{
-//        return transaction(database) {
-//            return@transaction VkPostTable.selectAll().toList().size
-//        }
-//    }
-//    private fun getLikeByOriginalUrl(originalUrl: String): Int{
-//        return transaction(database) {
-//            return@transaction VkPostTable.select { VkPostTable.originalUrl eq originalUrl }.first()[VkPostTable.like]
-//        }
-//    }
-//    fun newLikeByOriginalUrl(originalUrl: String, id: String){
-//        val like = getLikeByOriginalUrl(originalUrl)
-//        transaction(database) {
-//            VkPostTable.update({VkPostTable.originalUrl eq originalUrl}) { it[VkPostTable.like] = like + 1 }
-//        }
-//        likesDatabase.addL1kez(originalUrl, id)
-//    }
-//    fun deleteLikeByOriginalUrl(originalUrl: String, id: String){
-//        val like = getLikeByOriginalUrl(originalUrl)
-//        if (like > 0){
-//            transaction(database) {
-//                VkPostTable.update({VkPostTable.originalUrl eq originalUrl}) { it[VkPostTable.like] = like - 1 }
-//            }
-//        }
-//        likesDatabase.removeL1kez(originalUrl, id)
-//    }
-//    private fun getPost(id: Int): Post{
-//        return transaction(database) {
-//            val query = VkPostTable.select { VkPostTable.id eq id }.first()
-//            return@transaction Post(
-//                iconUrl = query[VkPostTable.iconUrl],
-//                groupName = query[VkPostTable.nameGroup],
-//                textPost = query[VkPostTable.textPost],
-//                imagesUrls = Json.decodeFromString<VkImageAndVideo>(query[VkPostTable.imagesUrls]),
-//                like = query[VkPostTable.like],
-//                commentsUrl = query[VkPostTable.commentsUrl],
-//                originalUrl = query[VkPostTable.originalUrl],
-//                exclusive = intToBool(query[VkPostTable.exclusive]),
-//                reposted = intToBool(query[VkPostTable.reposted]),
-//                origName = query[VkPostTable.origName],
-//                origPost = query[VkPostTable.origPost]
-//            )
-//        }
-//    }
-//    fun getAllTextPosts(): List<Any>{
-//        return transaction(database) {
-//            return@transaction VkPostTable.selectAll().toList().map { it[VkPostTable.textPost] }
-//        }
-//    }
-//    fun getRangeTextPosts(startIndex: Int, endIndex: Int): GetRPost{
-//        val listPost = ArrayList<Post>()
-//        for(index in startIndex..endIndex)listPost.add(getPost(index))
-//        listPost.reverse()
-//        return GetRPost(listPost)
-//    }
-//    fun insertAll(data: VkPostData){
-//        transaction(database) {
-//            VkPostTable.insert {
-//                it[iconUrl] = data.iconUrl
-//                it[nameGroup] = data.nameGroup
-//                it[textPost] = data.textPost
-//                it[imagesUrls] = data.imagesUrls
-//                it[like] = data.like
-//                it[commentsUrl] = data.commentsUrl
-//                it[originalUrl] = data.originalUrl
-//                it[dateTime] = data.dateTime
-//                it[exclusive] = data.exclusive
-//                it[reposted] = data.reposted
-//                it[origName] = data.origName
-//                it[origPost] = data.origPost
-//            }
-//        }
-//    }
-//    fun dropTable(){
-//        transaction(database) {
-//            VkPostTable.deleteAll()
-//        }
-//    }
-//}
 
 data class VkPostData(
     val iconUrl: String,

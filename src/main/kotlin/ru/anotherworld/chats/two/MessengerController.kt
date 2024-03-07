@@ -1,12 +1,13 @@
 package ru.anotherworld.chats.two
 
 import kotlinx.serialization.Serializable
+import ru.anotherworld.globalPath
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.SQLException
 
 class MessengerController(nameDB: String) {
-    private val path = "jdbc:sqlite:C:/Users/Rescue/Documents/ktor-jojack-server/src/main/kotlin/ru/anotherworld/files/sqldatabase/Messenger/$nameDB.db"
+    private val path = "jdbc:sqlite:$globalPath/sqldatabase/Messenger/$nameDB.db"
     private val tableName = "messenger"
     private val tableName2 = "op"
     private val initializeFirst = "CREATE TABLE IF NOT EXISTS $tableName(" +

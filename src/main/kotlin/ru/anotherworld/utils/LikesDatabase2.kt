@@ -11,19 +11,6 @@ import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransacti
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.io.File
 
-//object DatabaseSingletonLikesDatabase{
-////    private val database = Database.connect("jdbc:postgresql:C:/Users/Rescue/Documents/ktor-jojack-server/src/main/kotlin/ru/anotherworld/files/sqldatabase/likesdatabase;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false",)
-//    private val database = Database.connect("jdbc:postgresql://localhost:5432/likesdatabase;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false",
-//        user = "postgres", password = "password")
-//    fun init(){
-//        transaction(database) {
-//            SchemaUtils.create(LikeTable)
-//        }
-//    }
-//    suspend fun <T> dbQuery(block: suspend () -> T): T =
-//        newSuspendedTransaction(Dispatchers.IO) { block() }
-//}
-
 class DAOLikesDatabase{
     private fun resultRowToLikesDatabase(row: ResultRow) = Likes(
         originalUrl = row[LikeTable.originalUrl],
@@ -170,114 +157,6 @@ class LikesDatabase2{
     }
 }
 
-//class LikesDatabase21 {
-//    private val database = Database.connect("jdbc:h2:C:/Users/Rescue/Documents/ktor-jojack-server/src/main/kotlin/ru/anotherworld/files/sqldatabase/L1kes2",
-//        "org.h2.Driver")
-//    object LikeTable : Table(){
-//        val originalUrl = varchar("originalUrl", 128)
-//        val l1kez = varchar("l1kez", 4096)
-//        val number = integer("number")
-//
-//        override val primaryKey = PrimaryKey(originalUrl, name = "originalUrl")
-//    }
-//    init {
-//        if(!File("C:/Users/Rescue/Documents/ktor-jojack-server/src/main/kotlin/ru/anotherworld/files/sqldatabase/L1kes2.mv.db").exists()){
-//            transaction(database) {
-//                SchemaUtils.create(LikeTable)
-//            }
-//        }
-//    }
-//    fun insertAll(originalUrl1: String, l1kez1: String, number1: Int){
-//        transaction(database) {
-//            LikeTable.insert {
-//                it[originalUrl] = originalUrl1
-//                it[l1kez] = "{\"tokens\":[\"$l1kez1\"]}"
-//                it[number] = number1
-//            }
-//        }
-//    }
-//    fun getL1kez(originalUrl1: String): L1kes{
-//        return try {
-//            transaction(database) {
-//                return@transaction Json.decodeFromString<L1kes>(
-//                    LikeTable.select{ LikeTable.originalUrl eq originalUrl1 }.first()[LikeTable.l1kez]
-//                )
-//            }
-//        } catch (e: Exception){
-//            return L1kes(arrayListOf())
-//        }
-//    }
-//    private fun existsLikeForOriginalUrl(originalUrl1: String): Boolean{
-//        return try {
-//            transaction(database) {
-//                return@transaction LikeTable.select{ LikeTable.originalUrl eq originalUrl1 }.first()[LikeTable.number] >= 0
-//            }
-//        } catch (e: Exception){
-//            return false
-//        }
-//    }
-//    private fun getNumber(originalUrl1: String): Int{
-//        return try {
-//            transaction(database) {
-//                return@transaction LikeTable.select { LikeTable.originalUrl eq originalUrl1 }.first()[LikeTable.number]
-//            }
-//        } catch (e: Exception){
-//            return -1
-//        }
-//    }
-//    fun addL1kez(originalUrl1: String, data: String){
-//        if (existsLikeForOriginalUrl(originalUrl1)){
-//            try {
-//                val l1kez = getL1kez(originalUrl1)
-//                l1kez.tokens.add(data)
-//
-//                transaction(database) {
-//                    LikeTable.update({LikeTable.originalUrl eq originalUrl1}) { it[LikeTable.l1kez] = Json.encodeToString(l1kez) }
-//                }
-//                try {
-//                    val num = getNumber(originalUrl1)
-//                    transaction(database) {
-//                        LikeTable.update({LikeTable.originalUrl eq originalUrl1}) { it[LikeTable.number] = num + 1 }
-//                    }
-//                } catch (e: Exception){
-//                    println(e.message)
-//                }
-//            } catch (e: Exception){
-//                insertAll(originalUrl1, data, 1)
-//            }
-//        }
-//        else{
-//            insertAll(originalUrl1, data, 1)
-//        }
-//    }
-//    fun removeL1kez(originalUrl1: String, data: String){
-//        if (existsLikeForOriginalUrl(originalUrl1)){
-//            try {
-//                val l1kez = getL1kez(originalUrl1)
-//                if (data in l1kez.tokens){
-//                    l1kez.tokens.remove(data)
-//                    transaction(database) {
-//                        LikeTable.update({LikeTable.originalUrl eq originalUrl1}) { it[LikeTable.l1kez] = Json.encodeToString(l1kez) }
-//                    }
-//                    try {
-//                        val num = getNumber(originalUrl1)
-//                        transaction(database) {
-//                            LikeTable.update({LikeTable.originalUrl eq originalUrl1}) { it[LikeTable.number] = num - 1 }
-//                        }
-//                    } catch (e: Exception){
-//                        println(e.message)
-//                    }
-//                }
-//            } catch (e: Exception){
-//                insertAll(originalUrl1, data, 0)
-//            }
-//        }
-//        else {
-//            insertAll(originalUrl1, data, 0)
-//        }
-//    }
-//
-//}
 
 @Serializable
 data class L1kes(

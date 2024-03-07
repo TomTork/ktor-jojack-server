@@ -6,6 +6,7 @@ import io.ktor.server.netty.*
 import org.koin.ktor.plugin.Koin
 import ru.anotherworld.chats.di.mainModule
 import ru.anotherworld.chats.two.configureChatTwoController
+import ru.anotherworld.features.createpost.configureCreatePostRouting
 import ru.anotherworld.features.info.configureInfoRouting
 import ru.anotherworld.features.initialinfo.configureInitRouting
 import ru.anotherworld.features.login.configureLoginRouting
@@ -21,7 +22,8 @@ import ru.anotherworld.features.vk.configureVkRouting
 import ru.anotherworld.plugins.*
 import ru.anotherworld.utils.*
 
-
+const val globalPath = "C:/Users/Rescue/Documents/ktor-jojack-server/src/main/kotlin/ru/anotherworld/files"
+const val path = "C:/Users/Rescue/Documents/ktor-jojack-server/src/main/kotlin/ru/anotherworld"
 fun main() {
     embeddedServer(Netty, port = 8080, host = "192.168.0.100", module = Application::module)
         .start(wait = true)
@@ -48,6 +50,7 @@ fun Application.module() {
     configureUpdateRouting()
     configureImageRouting()
     configureIconRouting()
+    configureCreatePostRouting()
     configureTerminalRouting()
     configureVkLaunchListener()
 }

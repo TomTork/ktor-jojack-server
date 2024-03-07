@@ -1,5 +1,6 @@
 package ru.anotherworld.utils
 
+import ru.anotherworld.globalPath
 import java.io.File
 import java.io.FileInputStream
 import java.sql.Connection
@@ -8,7 +9,7 @@ import java.sql.SQLException
 
 class VkIdDatabase {
     private companion object{
-        private const val path = "jdbc:sqlite:C:/Users/Rescue/Documents/ktor-jojack-server/src/main/kotlin/ru/anotherworld/files/sqldatabase/VkDatabase/VkIdDatabase.db"
+        private const val path = "jdbc:sqlite:$globalPath/sqldatabase/VkDatabase/VkIdDatabase.db"
         private const val tableName = "VkIdPosts"
         private const val initializeFirst = "create table if not exists $tableName(" +
                 "id integer primary key," +

@@ -16,19 +16,6 @@ object TokenTable : Table("tokens"){
     override val primaryKey = PrimaryKey(id)
 }
 
-//object DatabaseSingletonTokenDatabase{
-////    private val database = Database.connect("jdbc:postgresql:C:/Users/Rescue/Documents/ktor-jojack-server/src/main/kotlin/ru/anotherworld/files/sqldatabase/tokensdatabase;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false",)
-//    private val database = Database.connect("jdbc:postgresql://localhost:5432/tokensdatabase;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false",
-//        user = "postgres", password = "password")
-//    fun init(){
-//        transaction(database) {
-//            SchemaUtils.create(TokenTable)
-//        }
-//    }
-//    suspend fun <T> dbQuery(block: suspend () -> T): T =
-//        newSuspendedTransaction(Dispatchers.IO) { block() }
-//}
-
 class DAOTokensDatabase{
     private fun resultRowToTokensDatabase(row: ResultRow) = TokensA(
         id = row[TokenTable.id],
@@ -181,85 +168,6 @@ data class TokensA2(
     val token: String
 )
 
-//class TokenDatabase2 {
-//    private val database = Database.connect("jdbc:h2:C:/Users/Rescue/Documents/ktor-jojack-server/src/main/kotlin/ru/anotherworld/files/sqldatabase/Tokens",
-//        "org.h2.Driver")
-//    object TokenTable : Table(){
-//        val id = integer("id").autoIncrement()
-//        val login = varchar("login", 64)
-//        val token = varchar("token", 64)
-//
-//        override val primaryKey = PrimaryKey(id, name = "id")
-//    }
-//    init {
-//        if(!File("C:/Users/Rescue/Documents/ktor-jojack-server/src/main/kotlin/ru/anotherworld/files/sqldatabase/Tokens.mv.db").exists()){
-//            transaction(database) {
-//                SchemaUtils.create(TokenTable)
-//            }
-//        }
-//    }
-//    fun getLogin(id: Int): String{
-//        return transaction(database) {
-//            return@transaction TokenTable.selectAll().where { TokenTable.id eq id }.first()[TokenTable.login].toString()
-//        }
-//    }
-//    fun insertAll(data: TokensDB){
-//        transaction(database) {
-//            TokenTable.insert {
-//                it[login] = data.login
-//                it[token] = data.token
-//            }
-//        }
-//    }
-//    fun getIdByLogin(login1: String): Int{
-//        return transaction(database) {
-//            return@transaction TokenTable.selectAll().where { TokenTable.login eq login1 }.first()[TokenTable.id]
-//        }
-//    }
-//    fun searchFieldsLogin(q: String): List<Pair<String, String>>{
-//        return transaction(database) {
-//            val list = TokenTable
-//                .slice(TokenTable.id, TokenTable.login)
-//                .selectAll()
-//                .where { TokenTable.login like "%$q%" }
-//                .toList()
-//                .map { Pair(it[TokenTable.login], it[TokenTable.id].toString()) }
-//            if(list.size > 16) return@transaction list.subList(0, 16)
-//            return@transaction list
-//        }
-//    }
-//    fun searchFieldsId(q: String): List<Pair<String, String>>{
-//        return try{
-//            return transaction(database) {
-//                val list = TokenTable
-//                    .slice(TokenTable.id, TokenTable.login)
-//                    .selectAll()
-//                    .where { TokenTable.id eq q.toInt() }
-//                    .toList()
-//                    .map { Pair(it[TokenTable.login], it[TokenTable.id].toString()) }
-//                if(list.size > 16) return@transaction list.subList(0, 16)
-//                return@transaction list
-//            }
-//        } catch (e: Exception){
-//            emptyList()
-//        }
-//    }
-//    fun getIdByToken(token1: String): Int{
-//        return transaction(database) {
-//            return@transaction TokenTable.selectAll().where { TokenTable.token eq token1 }.first()[TokenTable.id]
-//        }
-//    }
-//    fun getLoginByToken(token1: String): String{
-//        return transaction(database) {
-//            return@transaction TokenTable.selectAll().where { TokenTable.token eq token1 }.first()[TokenTable.login]
-//        }
-//    }
-//    fun getTokenByLogin(login1: String): String{
-//        return transaction(database) {
-//            return@transaction TokenTable.selectAll().where { TokenTable.login eq login1 }.first()[TokenTable.token]
-//        }
-//    }
-//}
 
 data class TokensDB(
     val login: String,
