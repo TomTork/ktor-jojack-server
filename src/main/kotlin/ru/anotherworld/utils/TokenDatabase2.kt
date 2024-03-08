@@ -104,6 +104,14 @@ class DAOTokensDatabase{
             .singleOrNull()!!
             .login
     }
+    suspend fun findToken(token: String): String? = dbQuery {
+        return@dbQuery TokenTable
+            .selectAll()
+            .where { TokenTable.token eq token }
+            .map(::resultRowToTokensDatabase)
+            .singleOrNull()
+            ?.token
+    }
     suspend fun getTokenByLogin(login: String): String = dbQuery {
         return@dbQuery TokenTable
             .select { TokenTable.login eq login }
@@ -116,6 +124,11 @@ class DAOTokensDatabase{
 private val dao = DAOTokensDatabase()
 
 class TokenDatabase2{
+    fun findToken(token: String): String?{
+        return runBlocking {
+            return@runBlocking dao.findToken(token)
+        }
+    }
     fun searchFieldsLogin(q: String): List<Pair<String, String>>{
         return runBlocking {
             return@runBlocking dao.searchFieldsLogin(q)

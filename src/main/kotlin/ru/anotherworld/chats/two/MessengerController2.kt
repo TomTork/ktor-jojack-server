@@ -5,6 +5,7 @@ import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.SQLException
 
+//DEPRECATED
 class MessengerController2(nameDB: String) {
     private val path = "jdbc:postgresql://localhost/$nameDB"
     private val tableName = "messenger"

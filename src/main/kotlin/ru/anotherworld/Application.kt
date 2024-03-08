@@ -6,6 +6,7 @@ import io.ktor.server.netty.*
 import org.koin.ktor.plugin.Koin
 import ru.anotherworld.chats.di.mainModule
 import ru.anotherworld.chats.two.configureChatTwoController
+import ru.anotherworld.features.comments.configureCommentsRouting
 import ru.anotherworld.features.createpost.configureCreatePostRouting
 import ru.anotherworld.features.info.configureInfoRouting
 import ru.anotherworld.features.initialinfo.configureInitRouting
@@ -50,6 +51,7 @@ fun Application.module() {
     configureUpdateRouting()
     configureImageRouting()
     configureIconRouting()
+    configureCommentsRouting()
     configureCreatePostRouting()
     configureTerminalRouting()
     configureVkLaunchListener()

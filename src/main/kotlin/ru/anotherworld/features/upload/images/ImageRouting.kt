@@ -12,6 +12,7 @@ import ru.anotherworld.utils.TokenDatabase2
 import java.io.File
 
 fun Application.configureImageRouting() {
+    val tokenDatabase2 = TokenDatabase2()
     routing {
         get("/image"){
             val name = call.parameters["name"]
@@ -23,7 +24,8 @@ fun Application.configureImageRouting() {
         }
         post("/add-image"){
             val response = call.parameters["name"]
-            if(response != null){
+            val token = call.parameters["tokenx2"]
+            if(response != null && token != null && tokenDatabase2.findToken(token) != null){
                 val file = File("$globalPath/images/others/${response}.png")
                 if (file.exists()) file.delete()
 

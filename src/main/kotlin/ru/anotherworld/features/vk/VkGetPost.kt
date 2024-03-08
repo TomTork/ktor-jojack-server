@@ -219,7 +219,7 @@ class VkGetPost {
             }
         }
     }
-    private fun getDate(): String{ //Функция возврата текущей даты
+    fun getDate(): String{ //Функция возврата текущей даты
         val currentDate = Date()
         val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
         val dateText = dateFormat.format(currentDate)

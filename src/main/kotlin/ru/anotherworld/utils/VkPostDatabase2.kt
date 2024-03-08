@@ -53,7 +53,8 @@ object DatabaseSingletonVkPostDatabase{
         database = Database.connect(createHikariDataSource(url = "jdbc:h2:$globalPath/sqldatabase/database;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false",
             driver = "org.h2.Driver"))
         transaction(database) {
-            SchemaUtils.createMissingTablesAndColumns(tables = arrayOf(VkPostTable, TokenTable, LikeTable, Articles))
+            SchemaUtils.createMissingTablesAndColumns(tables = arrayOf(VkPostTable, TokenTable, LikeTable, Articles,
+                CommentsTable))
         }
 
     }
@@ -179,7 +180,6 @@ class VkPostDatabase2{
             }
         } catch (e: Exception){
             println(e)
-            println(getMaxId())
         }
     }
     fun deleteAll(){
