@@ -25,8 +25,9 @@ import ru.anotherworld.utils.*
 
 const val globalPath = "C:/Users/Rescue/Documents/ktor-jojack-server/src/main/kotlin/ru/anotherworld/files"
 const val path = "C:/Users/Rescue/Documents/ktor-jojack-server/src/main/kotlin/ru/anotherworld"
+//const val IP = "192.168.0.102"
 fun main() {
-    embeddedServer(Netty, port = 8080, host = "192.168.0.100", module = Application::module)
+    embeddedServer(Netty, port = 8080, module = Application::module)
         .start(wait = true)
 }
 
