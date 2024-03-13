@@ -75,7 +75,7 @@ fun Application.configureChatTwoController() {
                                 TMessage(
                                     id = -1,
                                     author = "NULL",
-                                    message = "NULL",
+                                    message = """{"privacy": false}""",
                                     timestamp = System.currentTimeMillis()
                                 )
                             ))
@@ -103,7 +103,7 @@ fun Application.configureChatTwoController() {
                 call.respond(HttpStatusCode.OK, controller.getRangeMessage(db.startIndex, db.endIndex))
             } catch (e: Exception){
                 println(e.message)
-                call.respond(HttpStatusCode.Conflict)
+                call.respond(HttpStatusCode.BadRequest)
             }
         }
 
@@ -131,20 +131,6 @@ data class NameDB(
     val nameDB: String,
     val token: String
 )
-
-private fun insertOpenKey(chat: String, oKey: String, token: String, messengerController: MessengerController2){
-//    val tokenDatabase = TokenDatabase2()
-//    val numbersChat = chat.substringAfter("chat")
-//    val first = numbersChat.substringBefore("x").toInt()
-//    val second = numbersChat.substringAfter("x").toInt()
-//    val myId = tokenDatabase.getIdByToken(token)
-//    val pair = messengerController.getPairOpenKey()
-//    when (myId) {
-//        first -> { if (pair.op1 != "") messengerController.setOp1(oKey) }
-//        second -> { if (pair.op2 != "") messengerController.setOp2(oKey) }
-//        else -> throw Exception()
-//    }
-}
 
 private fun getPublicKeys(chat: String): Pair<String, String>{
     val tokenDatabase = TokenDatabase2()
@@ -189,3 +175,10 @@ data class TMessage2(
     val openKey: String
 )
 
+@Serializable
+data class TMessage(
+    val id: Int,
+    val author: String,
+    val message: String,
+    val timestamp: Long
+)

@@ -11,7 +11,7 @@ import ru.anotherworld.utils.DatabaseSingletonVkPostDatabase
 import java.io.File
 import kotlin.concurrent.thread
 
-var name: String? = null
+private var name: String? = null
 
 class MessengerController3(nameDB: String){
     init {
@@ -42,7 +42,7 @@ class MessengerController3(nameDB: String){
 //        val database = Database.connect("jdbc:h2://localhost:5432/$name",
 //            driver = "org.postgresql.Driver")
         var database: Database? = null
-        fun createHikariDataSource(
+        private fun createHikariDataSource(
             url: String,
             driver: String
         ) = HikariDataSource(HikariConfig().apply {
