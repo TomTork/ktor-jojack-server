@@ -22,6 +22,27 @@ fun Application.configureWebSocketsMultiChat() {
     val database = MainDatabase2()
     val tokenDatabase = TokenDatabase2()
     routing {
+        post("/init_new_user"){
+            val nameDB = call.parameters["namedb"]
+            if (nameDB == null) call.respond(HttpStatusCode.BadRequest)
+            else{
+                val receive = call.receive<InitEncUser>()
+                println("VALUES!!!2 -> ${receive.login} ${receive.token}")
+                val controller4 = MultiChatController(nameDB)
+                try {
+                    if(tokenDatabase.getTokenByLogin(receive.login) == receive.token){
+                        if (receive.login !in controller4.getAllKeys().map{ it.login }.toList()){
+                            controller4.addNewUser(receive.login, receive.publicKey)
+                            println("VALUES!!! -> ${receive.login} ${receive.publicKey}")
+                            call.respond(HttpStatusCode.OK)
+                        }
+                    }
+                } catch (e: Exception){
+                    println(e)
+                    call.respond(HttpStatusCode.BadRequest)
+                }
+            }
+        }
         var controller: MultiChatController?
         val connections = Collections.synchronizedSet<Connection?>(LinkedHashSet())
         webSocket("/e_chat") {
@@ -88,7 +109,7 @@ fun Application.configureWebSocketsMultiChat() {
             val nameDB = call.parameters["namedb"]
             if (nameDB == null) call.respond(HttpStatusCode.BadRequest)
             else{
-                val receive = call.receive<Indexes>()
+                val receive = call.receive<Indexes2>()
                 val controller2 = MultiChatController(nameDB)
                 try {
                     call.respond(HttpStatusCode.OK,
@@ -99,21 +120,23 @@ fun Application.configureWebSocketsMultiChat() {
                 }
             }
         }
-        post("/init_new_user"){
+
+        get("/get_enc_users"){
             val nameDB = call.parameters["namedb"]
-            if (nameDB == null) call.respond(HttpStatusCode.BadRequest)
+            val token = call.parameters["token"]
+            if(nameDB == null || token == null) call.respond(HttpStatusCode.BadRequest)
             else{
-                val receive = call.receive<InitEncUser>()
-                val controller4 = MultiChatController(nameDB)
-                try {
-                    if(tokenDatabase.getTokenByLogin(receive.login) == receive.token){
-                        controller4.addNewUser(receive.login, receive.publicKey)
-                        call.respond(HttpStatusCode.OK)
-                    }
-                } catch (e: Exception){
-                    println(e)
-                    call.respond(HttpStatusCode.BadRequest)
+                val controller5 = MultiChatController(nameDB)
+                val users = controller5.getAllKeys()
+                val login = tokenDatabase.getLoginByToken(token)
+                var success = false
+                for(data in users){
+                    if (login == data.login) {success = true; break;}
                 }
+                if (success){
+                    call.respond<List<DataKeys>>(HttpStatusCode.OK, users)
+                }
+                else call.respond(HttpStatusCode.BadRequest)
             }
         }
     }
@@ -129,4 +152,10 @@ data class InitEncUser(
     val login: String,
     val token: String,
     val publicKey: String
+)
+
+@Serializable
+data class Indexes2(
+    val startIndex: Long,
+    val endIndex: Long
 )
