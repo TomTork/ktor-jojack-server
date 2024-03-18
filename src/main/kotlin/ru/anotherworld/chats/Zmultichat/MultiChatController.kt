@@ -6,7 +6,6 @@ import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
-import ru.anotherworld.chats.two.MessengerController3
 import ru.anotherworld.globalPath
 import java.sql.SQLException
 
@@ -15,7 +14,13 @@ data class DataHelper(val countMessages: Long)
 @Serializable
 data class DataKeys(val login: String, val publicKey: String)
 @Serializable
-data class DataMessengerEncrypted(val id: Int, val author: String, val encText: String, val time: Long)
+data class DataMessengerEncrypted(
+    val id: Long,
+    val author: String,
+    val encText: String,
+    val time: Long,
+    val sendTo: String
+)
 
 private lateinit var name: String
 
@@ -24,10 +29,14 @@ class MultiChatController(nameDB: String) {
         name = nameDB
     }
     private object MessengerEncryptedTable : Table("emessenger"){
-        val id = integer("id")
+        val autoId = integer("autoid").autoIncrement()
+        val id = long("id")
         val author = varchar("author", 128)
         val encText = varchar("encText", 131072)
         val time = long("time")
+        val sendTo = varchar("sendto", 128)
+
+        override val primaryKey = PrimaryKey(autoId)
     }
     private object Keys : Table("keys"){
         val id = integer("id").autoIncrement()
@@ -177,7 +186,8 @@ class MultiChatController(nameDB: String) {
             id = row[MessengerEncryptedTable.id],
             author = row[MessengerEncryptedTable.author],
             encText = row[MessengerEncryptedTable.encText],
-            time = row[MessengerEncryptedTable.time]
+            time = row[MessengerEncryptedTable.time],
+            sendTo = row[MessengerEncryptedTable.sendTo]
         )
         fun getAllMessages(): List<DataMessengerEncrypted>{
             return transaction(DatabaseSingletonMessenger.database) {
@@ -187,7 +197,7 @@ class MultiChatController(nameDB: String) {
                     .toList()
             }
         }
-        fun getAllMessagesById(id: Int): List<DataMessengerEncrypted>{
+        fun getAllMessagesById(id: Long): List<DataMessengerEncrypted>{
             return transaction(DatabaseSingletonMessenger.database) {
                 return@transaction MessengerEncryptedTable
                     .selectAll()
@@ -204,9 +214,10 @@ class MultiChatController(nameDB: String) {
                         it[author] = data.author
                         it[encText] = data.encText
                         it[time] = data.time
+                        it[sendTo] = data.sendTo
                     }
+                DAOHelper().addInCounterNewValue()
             }
-            DAOHelper().addInCounterNewValue()
         }
         fun updateMessage(data: DataMessengerEncrypted){ //Warning! It is probably raise exception
             transaction(DatabaseSingletonMessenger.database) {
@@ -216,10 +227,11 @@ class MultiChatController(nameDB: String) {
                         it[author] = data.author
                         it[encText] = data.encText
                         it[time] = data.time
+                        it[sendTo] = data.sendTo
                     }
             }
         }
-        fun deleteMessageById(id: Int){ //Warning! Probably all data via id not been deleted
+        fun deleteMessageById(id: Long){ //Warning! Probably all data via id not been deleted
             transaction(DatabaseSingletonMessenger.database) {
                 MessengerEncryptedTable
                     .deleteWhere { MessengerEncryptedTable.id eq id }
@@ -229,11 +241,11 @@ class MultiChatController(nameDB: String) {
     }
     private val daoMessenger = DAOMessenger()
     fun getAllMessages(): List<DataMessengerEncrypted> = daoMessenger.getAllMessages()
-    fun getAllMessagesById(id: Int): List<DataMessengerEncrypted> = daoMessenger.getAllMessagesById(id)
+    fun getAllMessagesById(id: Long): List<DataMessengerEncrypted> = daoMessenger.getAllMessagesById(id)
     fun newMessage(data: DataMessengerEncrypted) = daoMessenger.newMessage(data)
     fun updateMessage(data: DataMessengerEncrypted) = daoMessenger.updateMessage(data)
-    fun deleteMessageById(id: Int) = daoMessenger.deleteMessageById(id)
-    fun getAllMessagesByIds(startId: Int, endId: Int): List<DataMessengerEncrypted>{
+    fun deleteMessageById(id: Long) = daoMessenger.deleteMessageById(id)
+    fun getAllMessagesByIds(startId: Long, endId: Long): List<DataMessengerEncrypted>{
         val array = ArrayList<DataMessengerEncrypted>()
         for(i in startId..endId){
             for(element in getAllMessagesById(i)){

@@ -10,84 +10,67 @@ import io.ktor.websocket.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import ru.anotherworld.chats.two.Connection
-import ru.anotherworld.chats.two.Indexes
 import ru.anotherworld.utils.MainDatabase2
 import ru.anotherworld.utils.TokenDatabase2
 import java.util.*
+import java.util.concurrent.atomic.AtomicInteger
 
 
 //PTP -> e_chat1x2; MultiChat -> e_chatMC${UUID}
+var controller: MultiChatController? = null
 fun Application.configureWebSocketsMultiChat() {
     val database = MainDatabase2()
     val tokenDatabase = TokenDatabase2()
+
     routing {
-        post("/init_new_user"){
-            val nameDB = call.parameters["namedb"]
-            if (nameDB == null) call.respond(HttpStatusCode.BadRequest)
-            else{
-                val receive = call.receive<InitEncUser>()
-                println("VALUES!!!2 -> ${receive.login} ${receive.token}")
-                val controller4 = MultiChatController(nameDB)
-                try {
-                    if(tokenDatabase.getTokenByLogin(receive.login) == receive.token){
-                        if (receive.login !in controller4.getAllKeys().map{ it.login }.toList()){
-                            controller4.addNewUser(receive.login, receive.publicKey)
-                            println("VALUES!!! -> ${receive.login} ${receive.publicKey}")
-                            call.respond(HttpStatusCode.OK)
-                        }
-                    }
-                } catch (e: Exception){
-                    println(e)
-                    call.respond(HttpStatusCode.BadRequest)
-                }
-            }
-        }
-        var controller: MultiChatController?
         val connections = Collections.synchronizedSet<Connection?>(LinkedHashSet())
-        webSocket("/e_chat") {
-            val nameDB = call.parameters["namedb"]
-            val token = call.parameters["token"]
+        webSocket("/echat2") {
+            val nameDB = call.parameters["namedbY"]
+            val token = call.parameters["tokenY"]
             if(nameDB == null || token == null) call.respond(HttpStatusCode.BadRequest)
             else{
                 controller = MultiChatController(nameDB)
                 val thisConnection = Connection(this, nameDB)
                 connections += thisConnection
-
                 try {
                     for(frame in incoming){
                         frame as? Frame.Text ?: continue
-
                         val receivedText = frame.readBytes().decodeToString()
                         val data = Json.decodeFromString<DataMessengerEncrypted>(receivedText)
-
+                        var ready = true
                         connections.forEach {
-                            if(nameDB == it.nameDB
-                                && (!database.getPrivacy(data.author) || database.getJob(data.author) > 1)){
+                            println("WATCH-> $nameDB ${it.nameDB}")
+                            if(nameDB == it.nameDB){
                                 it.session.send(
                                     Json.encodeToString<DataMessengerEncrypted>(
                                         DataMessengerEncrypted(
                                             id = data.id,
                                             author = data.author,
                                             encText = data.encText,
-                                            time = data.time
+                                            time = data.time,
+                                            sendTo = data.sendTo
                                         )
                                     )
                                 )
-                                controller!!.newMessage(data)
+                                println("SENDED")
+                                if (ready){
+                                    ready = false
+                                    controller!!.newMessage(data)
+                                }
                             }
-                            else if(database.getPrivacy(data.author)){
-                                it.session.send(
-                                    Json.encodeToString<DataMessengerEncrypted>(
-                                        DataMessengerEncrypted(
-                                            id = data.id,
-                                            author = "NULL",
-                                            encText = """{"privacy": false}""",
-                                            time = data.time
-                                        )
-                                    )
-                                )
-                            }
+//                            else if(database.getPrivacy(data.author)){
+//                                it.session.send(
+//                                    Json.encodeToString<DataMessengerEncrypted>(
+//                                        DataMessengerEncrypted(
+//                                            id = data.id,
+//                                            author = "NULL",
+//                                            encText = """{"privacy": false}""",
+//                                            time = data.time,
+//                                            sendTo = data.sendTo
+//                                        )
+//                                    )
+//                                )
+//                            }
                         }
                     }
                 } catch (e: Exception){
@@ -97,37 +80,59 @@ fun Application.configureWebSocketsMultiChat() {
                 }
             }
         }
-        get("/e_count"){
+        get("/ecount"){
             val nameDB = call.parameters["namedb"]
             if (nameDB == null) call.respond(HttpStatusCode.BadRequest)
             else{
-                val controller2 = MultiChatController(nameDB)
-                call.respond<CountMessages>(HttpStatusCode.OK, CountMessages(controller2.getCurrentCountMessages()))
+                controller = MultiChatController(nameDB)
+                call.respond<CountMessages>(HttpStatusCode.OK, CountMessages(controller!!.getCurrentCountMessages()))
             }
         }
-        post("/get_e_messages"){
+        post("/getemessages"){
             val nameDB = call.parameters["namedb"]
             if (nameDB == null) call.respond(HttpStatusCode.BadRequest)
             else{
                 val receive = call.receive<Indexes2>()
-                val controller2 = MultiChatController(nameDB)
+                controller = MultiChatController(nameDB)
                 try {
                     call.respond(HttpStatusCode.OK,
-                        controller2.getAllMessagesByIds(receive.startIndex, receive.endIndex))
+                        controller!!.getAllMessagesByIds(receive.startIndex, receive.endIndex))
                 } catch (e: Exception){
                     println(e)
                     call.respond(HttpStatusCode.BadRequest)
                 }
             }
         }
-
-        get("/get_enc_users"){
-            val nameDB = call.parameters["namedb"]
-            val token = call.parameters["token"]
+        post("/initnewuser2"){
+            val nameDB = call.parameters["namedbZ"]
+            if (nameDB == null) call.respond(HttpStatusCode.BadRequest)
+            else{
+                val receive = call.receive<InitEncUser>()
+                controller = MultiChatController(nameDB)
+                try {
+                    if(tokenDatabase.getTokenByLogin(receive.login) == receive.token){
+                        val allUsers = controller!!.getAllKeys().map{ it.login }.toList()
+                        println("INFO!!! -> ${allUsers}")
+                        if (receive.login !in allUsers || allUsers.isEmpty()){
+                            controller!!.addNewUser(receive.login, receive.publicKey)
+                            call.respond(HttpStatusCode.OK)
+                        }
+                        else call.respond(HttpStatusCode.Conflict)
+                    }
+                    else call.respond(HttpStatusCode.BadRequest)
+                } catch (e: Exception){
+                    println(e)
+                    call.respond(HttpStatusCode.BadRequest)
+                }
+            }
+        }
+        get("/getencusers"){
+            val nameDB = call.parameters["namedb6"]
+            val token = call.parameters["token6"]
             if(nameDB == null || token == null) call.respond(HttpStatusCode.BadRequest)
             else{
-                val controller5 = MultiChatController(nameDB)
-                val users = controller5.getAllKeys()
+                controller = MultiChatController(nameDB)
+                val users = controller!!.getAllKeys()
                 val login = tokenDatabase.getLoginByToken(token)
                 var success = false
                 for(data in users){
@@ -159,3 +164,11 @@ data class Indexes2(
     val startIndex: Long,
     val endIndex: Long
 )
+
+class Connection(val session: DefaultWebSocketSession, name: String){
+    companion object {
+        val lastId = AtomicInteger(0)
+    }
+    val name = "user${lastId.getAndIncrement()}"
+    val nameDB = name
+}

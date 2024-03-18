@@ -132,28 +132,6 @@ data class NameDB(
     val token: String
 )
 
-private fun getPublicKeys(chat: String): Pair<String, String>{
-    val tokenDatabase = TokenDatabase2()
-    val mainDatabase = MainDatabase2()
-    val numbersChat = chat.substringAfter("chat").substringBefore("?")
-    val first = numbersChat.substringBefore("x").toInt() //Id пользователя
-    val second = numbersChat.substringAfter("x").toInt()
-    val loginFirst = tokenDatabase.getLogin(first)
-    val loginSecond = tokenDatabase.getLogin(second)
-    return Pair(mainDatabase.getOpenedKey(loginFirst), mainDatabase.getOpenedKey(loginSecond))
-}
-
-@Serializable
-data class NameDB2(
-    val nameDB: String
-)
-
-@Serializable
-data class TInitPair(
-    val nameDB: String,
-    val oKey: String,
-    val token: String
-)
 
 @Serializable
 data class GetLengthMessages(
@@ -166,14 +144,6 @@ data class Indexes(
     val endIndex: Int
 )
 
-@Serializable
-data class TMessage2(
-    val id: Int,
-    val author: String,
-    val message: String,
-    val time: Long,
-    val openKey: String
-)
 
 @Serializable
 data class TMessage(

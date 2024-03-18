@@ -57,4 +57,5 @@ fun Application.module() {
     configureCreatePostRouting()
     configureTerminalRouting()
     configureVkLaunchListener()
+
 }
