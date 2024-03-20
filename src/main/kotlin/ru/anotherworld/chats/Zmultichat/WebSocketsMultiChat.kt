@@ -1,5 +1,6 @@
 package ru.anotherworld.chats.zmultichat
 
+import io.ktor.client.engine.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -10,14 +11,15 @@ import io.ktor.websocket.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import ru.anotherworld.globalPath
 import ru.anotherworld.utils.MainDatabase2
 import ru.anotherworld.utils.TokenDatabase2
+import java.io.File
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 
 
 //PTP -> e_chat1x2; MultiChat -> e_chatMC${UUID}
-var controller: MultiChatController? = null
 fun Application.configureWebSocketsMultiChat() {
     val database = MainDatabase2()
     val tokenDatabase = TokenDatabase2()
@@ -29,7 +31,9 @@ fun Application.configureWebSocketsMultiChat() {
             val token = call.parameters["tokenY"]
             if(nameDB == null || token == null) call.respond(HttpStatusCode.BadRequest)
             else{
-                controller = MultiChatController(nameDB)
+                val controller = MultiChatController(nameDB)
+                val login = tokenDatabase.getLoginByToken(token)
+                val blacklist = controller.getAllBlacklist()
                 val thisConnection = Connection(this, nameDB)
                 connections += thisConnection
                 try {
@@ -39,8 +43,7 @@ fun Application.configureWebSocketsMultiChat() {
                         val data = Json.decodeFromString<DataMessengerEncrypted>(receivedText)
                         var ready = true
                         connections.forEach {
-                            println("WATCH-> $nameDB ${it.nameDB}")
-                            if(nameDB == it.nameDB){
+                            if(nameDB == it.nameDB && login !in blacklist){
                                 it.session.send(
                                     Json.encodeToString<DataMessengerEncrypted>(
                                         DataMessengerEncrypted(
@@ -52,10 +55,9 @@ fun Application.configureWebSocketsMultiChat() {
                                         )
                                     )
                                 )
-                                println("SENDED")
                                 if (ready){
                                     ready = false
-                                    controller!!.newMessage(data)
+                                    controller.newMessage(data)
                                 }
                             }
 //                            else if(database.getPrivacy(data.author)){
@@ -82,21 +84,142 @@ fun Application.configureWebSocketsMultiChat() {
         }
         get("/ecount"){
             val nameDB = call.parameters["namedb"]
-            if (nameDB == null) call.respond(HttpStatusCode.BadRequest)
+            val token = call.parameters["token"]
+            if (nameDB == null || token == null) call.respond(HttpStatusCode.BadRequest)
             else{
-                controller = MultiChatController(nameDB)
-                call.respond<CountMessages>(HttpStatusCode.OK, CountMessages(controller!!.getCurrentCountMessages()))
+                val controller = MultiChatController(nameDB)
+                if (tokenDatabase.getLoginByToken(token) !in controller.getAllBlacklist()){
+                    call.respond<CountMessages>(HttpStatusCode.OK, CountMessages(controller.getCurrentCountMessages()))
+                }
+                else call.respond(HttpStatusCode.Conflict, "You are in blacklist!")
+            }
+        }
+        post("/echatdelete"){
+            val nameDB = call.parameters["namedb"]
+            val token = call.parameters["token"]
+            if(token == null || nameDB == null) call.respond(HttpStatusCode.BadRequest)
+            else{
+                val login = tokenDatabase.getLoginByToken(token)
+                val controller = MultiChatController(nameDB)
+                val access = controller.getAccessRights(login)
+                if((access != null && access) || (database.getJob(login) == 5) && login !in controller.getAllBlacklist()){
+                    val file = File("$globalPath/sqldatabase/e_messenger/$nameDB.mv.db")
+                    if (file.exists()) file.delete()
+                }
+            }
+        }
+        post("/echataccess"){
+            val nameDB = call.parameters["namedb"]
+            val token = call.parameters["token"]
+            val qAdmin = call.parameters["qadmin"]
+            val newAccess = call.parameters["newaccess"]
+            if (nameDB == null || token == null || qAdmin == null || newAccess == null) call.respond(HttpStatusCode.BadRequest)
+            else{
+                val login = tokenDatabase.getLoginByToken(token)
+                val controller = MultiChatController(nameDB)
+                val access = controller.getAccessRights(login)
+                if (access != null && access && login !in controller.getAllBlacklist()){
+                    controller.updateAccessRights(newAccess.toBoolean(), login, qAdmin)
+                    call.respond(HttpStatusCode.OK)
+                }
+                else call.respond(HttpStatusCode.Conflict, "You are not admin!")
+            }
+        }
+        get("/echatgetblacklist"){
+            val nameDB = call.parameters["namedb"]
+            val token = call.parameters["token"]
+            if(token == null || nameDB == null) call.respond(HttpStatusCode.BadRequest)
+            else{
+                val controller = MultiChatController(nameDB)
+                val login = tokenDatabase.getLoginByToken(token)
+                if(login in controller.getAllKeys().map { it.login }.toList()
+                    && login !in controller.getAllBlacklist()){
+                    val list = controller.getAllBlacklist()
+                    call.respond<RespondBlacklist>(HttpStatusCode.OK, RespondBlacklist(list))
+                }
+                else call.respond(HttpStatusCode.Conflict, "You are not in chat!")
+            }
+        }
+        post("/echataddinblacklist"){
+            val nameDB = call.parameters["namedb"]
+            val token = call.parameters["token"] //token users, who request ban
+            val guilty = call.parameters["guilty"] //request login of guilty person
+            if (nameDB == null || token == null || guilty == null) call.respond(HttpStatusCode.BadRequest)
+            else{
+                val controller = MultiChatController(nameDB)
+                if ("echat" in nameDB){ //chat on two person, ban has been confirmed
+                    if (tokenDatabase.getLoginByToken(token) in controller.getAllKeys().map { it.login }.toList()){
+                        controller.addInBlacklist(guilty)
+                        call.respond(HttpStatusCode.OK)
+                    }
+                    else call.respond(HttpStatusCode.BadRequest, "You are not in chat!")
+                }
+                else{ //ban in multiChat
+                    val login = tokenDatabase.getLoginByToken(token)
+                    val access = controller.getAccessRights(login)
+                    if (login in controller.getAllKeys().map { it.login }.toList()
+                        && access != null && access){
+                        controller.addInBlacklist(guilty)
+                        call.respond(HttpStatusCode.OK)
+                    }
+                    else call.respond(HttpStatusCode.Conflict, "You are not admin!")
+                }
+            }
+        }
+        post("/echatremovefromblacklist"){
+            val nameDB = call.parameters["namedb"]
+            val token = call.parameters["token"] //token users, who request unban
+            val guilty = call.parameters["guilty"] //request login of guilty person
+            if (nameDB == null || token == null || guilty == null) call.respond(HttpStatusCode.BadRequest)
+            else{
+                val controller = MultiChatController(nameDB)
+                if("echat" in nameDB){
+                    if (tokenDatabase.getLoginByToken(token) in controller.getAllKeys().map { it.login }.toList()){
+                        controller.removeFromBlacklist(guilty)
+                        call.respond(HttpStatusCode.OK)
+                    }
+                    else call.respond(HttpStatusCode.BadRequest, "You are not in chat!")
+                }
+                else{
+                    val login = tokenDatabase.getLoginByToken(token)
+                    val access = controller.getAccessRights(login)
+                    if (login in controller.getAllKeys().map { it.login }.toList()
+                        && access != null && access){
+                        controller.removeFromBlacklist(guilty)
+                        call.respond(HttpStatusCode.OK)
+                    }
+                    else call.respond(HttpStatusCode.Conflict, "You are not admin!")
+                }
+            }
+        }
+        get("/echatgetaccess"){
+            val nameDB = call.parameters["namedb"]
+            val token = call.parameters["token"]
+            if(nameDB == null || token == null) call.respond(HttpStatusCode.BadRequest)
+            else{
+                val login = tokenDatabase.getLoginByToken(token)
+                val controller = MultiChatController(nameDB)
+                if (login in controller.getAllKeys().map { it.login }.toList()
+                    && login !in controller.getAllBlacklist()){
+                    val access = controller.getAccessRights(login)
+                    if(access != null) call.respond<RespondAccess>(RespondAccess(access))
+                    else call.respond(HttpStatusCode.BadRequest)
+                }
             }
         }
         post("/getemessages"){
             val nameDB = call.parameters["namedb"]
-            if (nameDB == null) call.respond(HttpStatusCode.BadRequest)
+            val token = call.parameters["token"]
+            if (nameDB == null || token == null) call.respond(HttpStatusCode.BadRequest)
             else{
                 val receive = call.receive<Indexes2>()
-                controller = MultiChatController(nameDB)
+                val controller = MultiChatController(nameDB)
                 try {
-                    call.respond(HttpStatusCode.OK,
-                        controller!!.getAllMessagesByIds(receive.startIndex, receive.endIndex))
+                    if (tokenDatabase.getLoginByToken(token) !in controller.getAllBlacklist()){
+                        call.respond(HttpStatusCode.OK,
+                            controller.getAllMessagesByIds(receive.startIndex, receive.endIndex))
+                    }
+                    else call.respond(HttpStatusCode.Conflict, "You are in blacklist!")
                 } catch (e: Exception){
                     println(e)
                     call.respond(HttpStatusCode.BadRequest)
@@ -108,13 +231,13 @@ fun Application.configureWebSocketsMultiChat() {
             if (nameDB == null) call.respond(HttpStatusCode.BadRequest)
             else{
                 val receive = call.receive<InitEncUser>()
-                controller = MultiChatController(nameDB)
+                val controller = MultiChatController(nameDB)
                 try {
-                    if(tokenDatabase.getTokenByLogin(receive.login) == receive.token){
-                        val allUsers = controller!!.getAllKeys().map{ it.login }.toList()
-                        println("INFO!!! -> ${allUsers}")
+                    if(tokenDatabase.getTokenByLogin(receive.login) == receive.token
+                        && receive.login !in controller.getAllBlacklist()){
+                        val allUsers = controller.getAllKeys().map{ it.login }.toList()
                         if (receive.login !in allUsers || allUsers.isEmpty()){
-                            controller!!.addNewUser(receive.login, receive.publicKey)
+                            controller.addNewUser(receive.login, receive.publicKey)
                             call.respond(HttpStatusCode.OK)
                         }
                         else call.respond(HttpStatusCode.Conflict)
@@ -131,21 +254,35 @@ fun Application.configureWebSocketsMultiChat() {
             val token = call.parameters["token6"]
             if(nameDB == null || token == null) call.respond(HttpStatusCode.BadRequest)
             else{
-                controller = MultiChatController(nameDB)
-                val users = controller!!.getAllKeys()
+                val controller = MultiChatController(nameDB)
+                val users = controller.getAllKeys()
                 val login = tokenDatabase.getLoginByToken(token)
-                var success = false
-                for(data in users){
-                    if (login == data.login) {success = true; break;}
+                if (login !in controller.getAllBlacklist()){
+                    var success = false
+                    for(data in users){
+                        if (login == data.login) {success = true; break;}
+                    }
+                    if (success){
+                        call.respond<List<DataKeys>>(HttpStatusCode.OK, users)
+                    }
+                    else call.respond(HttpStatusCode.BadRequest)
                 }
-                if (success){
-                    call.respond<List<DataKeys>>(HttpStatusCode.OK, users)
-                }
-                else call.respond(HttpStatusCode.BadRequest)
+                else call.respond(HttpStatusCode.Conflict, "You are in blacklist!")
             }
         }
     }
 }
+
+
+@Serializable
+data class RespondAccess(
+    val access: Boolean
+)
+
+@Serializable
+data class RespondBlacklist(
+    val list: List<String>
+)
 
 @Serializable
 data class CountMessages(
