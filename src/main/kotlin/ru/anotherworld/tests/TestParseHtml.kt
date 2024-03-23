@@ -1,11 +1,33 @@
 package ru.anotherworld.tests
 
 import org.jsoup.Jsoup
+import org.koin.core.component.getScopeName
+import ru.anotherworld.Cipher
+import ru.anotherworld.RSAKotlin
 import ru.anotherworld.features.vk.FromUrl
 import ru.anotherworld.features.vk.VkImageAndVideo
 import ru.anotherworld.utils.VkPostDatabase2
+import java.security.KeyPairGenerator
+import java.security.PrivateKey
+import java.security.PublicKey
+import java.util.*
+
+fun generatePairKeys(): Pair<String, String>{ //Private and public keys
+    val privateKey: PrivateKey
+    val publicKey: PublicKey
+    val keyGen = KeyPairGenerator.getInstance("RSA")
+    keyGen.initialize(1024)
+    val pair = keyGen.generateKeyPair()
+    privateKey = pair.private
+    publicKey = pair.public
+    return Pair(
+        Base64.getEncoder().encodeToString(privateKey.encoded),
+        Base64.getEncoder().encodeToString(publicKey.encoded))
+}
 
 fun main(){
+//    val pair = generatePairKeys()
+//    println("PR:${pair.first}\nPU:${pair.second}")
     val url = "https://vk.com/wall-216539100_4470"
 //    val url = "https://vk.com/wall-40886007_1182807"
 //    getContentFromUrl("https://vk.com/academicart?w=wall-40886007_1182807").image.images.map { it->

@@ -54,7 +54,7 @@ object DatabaseSingletonVkPostDatabase{
             driver = "org.h2.Driver"))
         transaction(database) {
             SchemaUtils.createMissingTablesAndColumns(tables = arrayOf(VkPostTable, TokenTable, LikeTable, Articles,
-                CommentsTable))
+                CommentsTable, InfoChatTable))
         }
 
     }

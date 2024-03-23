@@ -12,7 +12,7 @@ import java.util.*
 val cipher = Cipher()
 class RegisterController(){
     private val mainDatabase = MainDatabase2()
-    val tokenDatabase2 = TokenDatabase2()
+    private val tokenDatabase2 = TokenDatabase2()
     suspend fun registerNewUser(call: ApplicationCall){
         val registerReceiverRemote = call.receive<RegisterReceiveRemote>()
         val isUserExists = mainDatabase.searchRegisterUser(registerReceiverRemote.login)

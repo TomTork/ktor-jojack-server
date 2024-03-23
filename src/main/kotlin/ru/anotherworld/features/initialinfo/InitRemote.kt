@@ -1,6 +1,7 @@
 package ru.anotherworld.features.initialinfo
 
 import kotlinx.serialization.Serializable
+import ru.anotherworld.utils.MyInfoChat
 
 @Serializable
 data class InitRemote(
@@ -9,5 +10,6 @@ data class InitRemote(
     val privacy: Boolean,
     val icon: String,
     val trustLevel: Int,
-    val info: String
+    val info: String,
+    val chatsList: List<MyInfoChat>
 )

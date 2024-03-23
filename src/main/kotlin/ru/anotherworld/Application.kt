@@ -7,10 +7,12 @@ import org.koin.ktor.plugin.Koin
 import ru.anotherworld.chats.di.mainModule
 import ru.anotherworld.chats.two.configureChatTwoController
 import ru.anotherworld.chats.zmultichat.configureWebSocketsMultiChat
+import ru.anotherworld.features.changepassword.configureChangePasswordRouting
 import ru.anotherworld.features.comments.configureCommentsRouting
 import ru.anotherworld.features.createpost.configureCreatePostRouting
 import ru.anotherworld.features.info.configureInfoRouting
 import ru.anotherworld.features.initialinfo.configureInitRouting
+import ru.anotherworld.features.insertchat.configureInsertChatRouting
 import ru.anotherworld.features.login.configureLoginRouting
 import ru.anotherworld.features.posts.configureLikeListener
 import ru.anotherworld.features.register.configureRegisterRouting
@@ -54,8 +56,10 @@ fun Application.module() {
     configureImageRouting()
     configureIconRouting()
     configureCommentsRouting()
+    configureInsertChatRouting()
     configureCreatePostRouting()
     configureTerminalRouting()
+    configureChangePasswordRouting()
     configureVkLaunchListener()
 
 }

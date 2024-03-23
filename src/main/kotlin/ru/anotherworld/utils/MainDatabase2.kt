@@ -233,6 +233,11 @@ class MainDatabase2{
             return@runBlocking dao.getPassword(login)
         }
     }
+    fun setPassword(login: String, password: String): Boolean{
+        return runBlocking {
+            return@runBlocking dao.setPassword(login, password)
+        }
+    }
     fun getPrivacy(login: String): Boolean{
         return runBlocking {
             return@runBlocking dao.getPrivacy(login)
