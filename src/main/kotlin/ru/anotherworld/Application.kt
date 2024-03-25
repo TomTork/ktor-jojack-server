@@ -61,5 +61,5 @@ fun Application.module() {
     configureTerminalRouting()
     configureChangePasswordRouting()
     configureVkLaunchListener()
-
+    println("WARNING! ${InfoChatDatabase().getAllUsers()}")
 }

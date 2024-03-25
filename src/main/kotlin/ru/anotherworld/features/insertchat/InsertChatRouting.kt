@@ -15,8 +15,20 @@ fun Application.configureInsertChatRouting(){
     val tokenDatabase2 = TokenDatabase2()
     val infoChatDatabase = InfoChatDatabase()
     routing {
+        get("/getloginfromid"){
+            val id = call.parameters["id"]
+            if(id != null){
+                try {
+                    call.respond(HttpStatusCode.OK, tokenDatabase2.getLogin(id.toInt()))
+                } catch (e: Exception){
+                    call.respond(HttpStatusCode.Gone)
+                }
+            }
+            else call.respond(HttpStatusCode.BadRequest)
+        }
         post("/addnewchatinfo"){
             val receive = call.receive<InfoChatReceive>()
+            println("STATUS-1 ${receive.login} ${receive.token} ${tokenDatabase2.getLoginByToken(receive.token)}")
             if (tokenDatabase2.getLoginByToken(receive.token) == receive.login){
                 infoChatDatabase.insertAll(
                     InfoChat(
@@ -33,6 +45,7 @@ fun Application.configureInsertChatRouting(){
         }
         post("/addnewchatinfo2"){
             val receive = call.receive<InfoChat>()
+            println("STATUS-2 ${receive.login}}")
             try{
                 infoChatDatabase.insertAll(
                     InfoChat(

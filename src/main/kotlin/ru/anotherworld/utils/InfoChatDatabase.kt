@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 
+@Serializable
 data class InfoChat(
     val login: String,
     val urlChat: String,
@@ -50,6 +51,12 @@ class DAOInfoChatDatabase{
             .map(::resultRowToExport)
             .toList()
     }
+    suspend fun getAllUsers(): List<InfoChat> = dbQuery {
+        return@dbQuery InfoChatTable
+            .selectAll()
+            .map(::resultRowToInfoChat)
+            .toList()
+    }
     suspend fun addNewData(data: InfoChat) = dbQuery{
         InfoChatTable
             .insert {
@@ -73,10 +80,23 @@ class DAOInfoChatDatabase{
         InfoChatTable
             .deleteWhere { (InfoChatTable.login eq login) and (InfoChatTable.urlChat eq urlChat) }
     }
+    suspend fun deleteAll() = dbQuery {
+        InfoChatTable.deleteAll()
+    }
 }
 
 private val daoInfoChatDatabase = DAOInfoChatDatabase()
 class InfoChatDatabase {
+    fun getAllUsers(): List<InfoChat>{
+        return runBlocking {
+            return@runBlocking daoInfoChatDatabase.getAllUsers()
+        }
+    }
+    fun deleteAll(){
+        runBlocking {
+            daoInfoChatDatabase.deleteAll()
+        }
+    }
     fun insertAll(data: InfoChat){
         runBlocking {
             daoInfoChatDatabase.addNewData(data)
