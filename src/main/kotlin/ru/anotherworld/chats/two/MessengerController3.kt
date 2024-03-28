@@ -7,9 +7,6 @@ import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import ru.anotherworld.globalPath
-import ru.anotherworld.utils.DatabaseSingletonVkPostDatabase
-import java.io.File
-import kotlin.concurrent.thread
 
 private var name: String? = null
 
@@ -54,9 +51,13 @@ class MessengerController3(nameDB: String){
             validate()
         })
         fun init(){
+//            database = Database.connect(url = "jdbc:postgresql://localhost:5432/$name;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false",
+//                driver = "org.postgresql.Driver",
+//                user = "postgres", password = "admin")
             database = Database.connect(
                 createHikariDataSource(
                     url = "jdbc:h2:$globalPath/sqldatabase/messenger/$name;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false",
+//                    url = "jdbc:postgresql://localhost:5432/$name;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false",
                     driver = "org.h2.Driver"
                     )
                 )

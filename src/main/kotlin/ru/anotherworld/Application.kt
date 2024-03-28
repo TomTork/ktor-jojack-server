@@ -61,5 +61,6 @@ fun Application.module() {
     configureTerminalRouting()
     configureChangePasswordRouting()
     configureVkLaunchListener()
-    println("WARNING! ${InfoChatDatabase().getAllUsers()}")
+//    println("INFO -> ${VkPostDatabase2().getRangeTextPosts(1, 2)}")
+//    println("WARNING! ${InfoChatDatabase().getAllUsers()}")
 }

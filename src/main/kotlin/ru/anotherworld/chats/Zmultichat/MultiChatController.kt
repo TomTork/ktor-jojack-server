@@ -74,9 +74,12 @@ class MultiChatController(nameDB: String) {
             validate()
         })
         fun init(){
+//            database = Database.connect(url = "jdbc:postgresql://localhost:5432/${name};DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false",
+//                driver = "org.postgresql.Driver", user = "postgres", password = "admin")
             database = Database.connect(
                 createHikariDataSource(
                     url = "jdbc:h2:$globalPath/sqldatabase/e_messenger/${name};DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false",
+//                    url = "jdbc:postgresql://localhost:5432/${name};DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false",
                     driver = "org.h2.Driver"
                 )
             )

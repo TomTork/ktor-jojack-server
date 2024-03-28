@@ -11,6 +11,7 @@ import io.ktor.server.sessions.*
 import io.ktor.util.*
 import ru.anotherworld.chats.session.ChatSession
 import ru.anotherworld.chats.two.NameDB
+import ru.anotherworld.features.login.cipher
 import ru.anotherworld.utils.TokenDatabase2
 
 fun Application.configureSecurity() {
@@ -23,8 +24,11 @@ fun Application.configureSecurity() {
             val tokenDatabase = TokenDatabase2()
             val username = call.parameters["username"] ?: "Guest"
             val token = call.parameters["token"]
-            if ("username" in call.parameters.names().toList() && token != "" && token != null && username == tokenDatabase.getLoginByToken(token))call.sessions.set(ChatSession(username, generateNonce()))
-            else if("username" !in call.parameters.names().toList() && "token" !in call.parameters.names().toList())call.sessions.set(ChatSession(username, generateNonce()))
+            println("STAGE-PRE=9 $username $token")
+            if("username" !in call.parameters.names().toList() && "token" !in call.parameters.names().toList())call.sessions.set(ChatSession(username, generateNonce()))
+            else if(username == "Guest" && token != null) call.sessions.set(ChatSession(tokenDatabase.getLoginByToken(token), generateNonce()))
+            else if ("username" in call.parameters.names().toList() && token != "" && token != null && username == tokenDatabase.getLoginByToken(token))call.sessions.set(ChatSession(username, generateNonce()))
+            else if(token != null) call.sessions.set(ChatSession(token, generateNonce()))
             else call.respond(HttpStatusCode.BadGateway, "Token not equal by login")
         }
         else if(call.sessions.get<NameDB>() == null){

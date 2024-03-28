@@ -4,6 +4,7 @@ import io.ktor.server.application.*
 import kotlinx.coroutines.GlobalScope
 import ru.anotherworld.utils.MainDatabase2
 import ru.anotherworld.utils.TokenDatabase2
+import ru.anotherworld.utils.VkPostDatabase2
 import java.lang.Thread.sleep
 
 fun configureVkLaunchListener() {

@@ -50,7 +50,11 @@ object DatabaseSingletonVkPostDatabase{
         validate()
     })
     fun init(){
-        database = Database.connect(createHikariDataSource(url = "jdbc:h2:$globalPath/sqldatabase/database;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false",
+//        database = Database.connect(url = "jdbc:postgresql://localhost:5432/database;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false",
+//            driver = "org.postgresql.Driver", user = "postgres", password = "admin")
+        database = Database.connect(createHikariDataSource(
+            url = "jdbc:h2:$globalPath/sqldatabase/database;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false",
+//            url = "jdbc:postgresql://localhost:5432/database;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false",
             driver = "org.h2.Driver"))
         transaction(database) {
             SchemaUtils.createMissingTablesAndColumns(tables = arrayOf(VkPostTable, TokenTable, LikeTable, Articles,
@@ -185,6 +189,11 @@ class VkPostDatabase2{
     fun deleteAll(){
         runBlocking {
             dao.deleteAll()
+        }
+    }
+    fun deletePostById(id: Int){
+        runBlocking {
+            dao.deleteVkPostDatabase(id)
         }
     }
     fun getMaxId(): Int{

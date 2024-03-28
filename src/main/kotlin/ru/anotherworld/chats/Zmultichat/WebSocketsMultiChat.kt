@@ -91,7 +91,7 @@ fun Application.configureWebSocketsMultiChat() {
                 if (tokenDatabase.getLoginByToken(token) !in controller.getAllBlacklist()){
                     call.respond<CountMessages>(HttpStatusCode.OK, CountMessages(controller.getCurrentCountMessages()))
                 }
-                else call.respond(HttpStatusCode.Conflict, "You are in blacklist!")
+                else call.respond(HttpStatusCode.Conflict)
             }
         }
         post("/echatdelete"){
@@ -122,7 +122,7 @@ fun Application.configureWebSocketsMultiChat() {
                     controller.updateAccessRights(newAccess.toBoolean(), login, qAdmin)
                     call.respond(HttpStatusCode.OK)
                 }
-                else call.respond(HttpStatusCode.Conflict, "You are not admin!")
+                else call.respond(HttpStatusCode.Conflict)
             }
         }
         get("/echatgetblacklist"){
@@ -137,7 +137,7 @@ fun Application.configureWebSocketsMultiChat() {
                     val list = controller.getAllBlacklist()
                     call.respond<RespondBlacklist>(HttpStatusCode.OK, RespondBlacklist(list))
                 }
-                else call.respond(HttpStatusCode.Conflict, "You are not in chat!")
+                else call.respond(HttpStatusCode.Conflict)
             }
         }
         post("/echataddinblacklist"){
@@ -162,7 +162,7 @@ fun Application.configureWebSocketsMultiChat() {
                         controller.addInBlacklist(guilty)
                         call.respond(HttpStatusCode.OK)
                     }
-                    else call.respond(HttpStatusCode.Conflict, "You are not admin!")
+                    else call.respond(HttpStatusCode.Conflict)
                 }
             }
         }
@@ -188,7 +188,7 @@ fun Application.configureWebSocketsMultiChat() {
                         controller.removeFromBlacklist(guilty)
                         call.respond(HttpStatusCode.OK)
                     }
-                    else call.respond(HttpStatusCode.Conflict, "You are not admin!")
+                    else call.respond(HttpStatusCode.Conflict)
                 }
             }
         }
@@ -215,11 +215,11 @@ fun Application.configureWebSocketsMultiChat() {
                 val receive = call.receive<Indexes2>()
                 val controller = MultiChatController(nameDB)
                 try {
-                    if (tokenDatabase.getLoginByToken(token) !in controller.getAllBlacklist()){
+                    if (tokenDatabase.getLoginByToken(token) !in controller.getAllBlacklist() || controller.getAllBlacklist().isEmpty()){
                         call.respond(HttpStatusCode.OK,
                             controller.getAllMessagesByIds(receive.startIndex, receive.endIndex))
                     }
-                    else call.respond(HttpStatusCode.Conflict, "You are in blacklist!")
+                    else call.respond(HttpStatusCode.Conflict)
                 } catch (e: Exception){
                     println(e)
                     call.respond(HttpStatusCode.BadRequest)
@@ -234,7 +234,8 @@ fun Application.configureWebSocketsMultiChat() {
                 val controller = MultiChatController(nameDB)
                 try {
                     if(tokenDatabase.getTokenByLogin(receive.login) == receive.token
-                        && receive.login !in controller.getAllBlacklist()){
+                        && (receive.login !in controller.getAllBlacklist())
+                        || controller.getAllBlacklist().isEmpty()){
                         val allUsers = controller.getAllKeys().map{ it.login }.toList()
                         if (receive.login !in allUsers || allUsers.isEmpty()){
                             controller.addNewUser(receive.login, receive.publicKey)
@@ -267,7 +268,7 @@ fun Application.configureWebSocketsMultiChat() {
                     }
                     else call.respond(HttpStatusCode.BadRequest)
                 }
-                else call.respond(HttpStatusCode.Conflict, "You are in blacklist!")
+                else call.respond(HttpStatusCode.Conflict)
             }
         }
     }
